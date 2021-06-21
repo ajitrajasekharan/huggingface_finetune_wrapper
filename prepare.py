@@ -7,10 +7,13 @@ import sys
 import traceback
 import argparse
 import string
+import random
 
 
 
 DEFAULT_MODEL_PATH="./model"
+#TERM1 = "@entitya$"
+#TERM2 = "@entityb$"
 TERM1 = "Drug"
 TERM2 = "Target"
 PAD = 0
@@ -41,9 +44,16 @@ def truncated_sentence(term1,term2,sent):
     pos_arr = []
     find_all_pos(sent,term1,pos_arr) 
     find_all_pos(sent,term2,pos_arr) 
-    min_pos = min(pos_arr)
-    max_pos = max(pos_arr)
-    return sent[min_pos:max_pos + PAD]
+    if (PAD != 0):
+        min_pos = min(pos_arr) - random.randint(1,PAD)
+    else:
+        min_pos = min(pos_arr)
+    min_pos = 0 if min_pos < 0 else min_pos
+    if (PAD != 0):
+        max_pos = max(pos_arr) + random.randint(1,PAD)
+    else:
+        max_pos = max(pos_arr)
+    return sent[min_pos:max_pos]
 
 
 

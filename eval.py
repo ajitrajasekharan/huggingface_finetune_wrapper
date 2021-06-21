@@ -44,6 +44,7 @@ def test_fine_tune(params):
     # Load trained model
     model = BertForSequenceClassification.from_pretrained(model_path, num_labels=2)
     tokenizer = BertTokenizer.from_pretrained(model_path)
+    model.eval()
 
     # Load test data
     test_data = pd.read_csv(input_file,sep='\t')
@@ -65,6 +66,7 @@ def test_fine_tune(params):
     # Make prediction
     raw_pred, _, _ = test_trainer.predict(test_dataset)
 
+    pdb.set_trace()
     # Preprocess raw predictions
     y_pred = np.argmax(raw_pred, axis=1)
     confusion_matrix = {}
@@ -80,8 +82,22 @@ def test_fine_tune(params):
     fp.close()
 
     print(confusion_matrix)
+    f1_dict = {}
+    f1_dict["precision"] = {}
+    f1_dict["recall"] = {}
+    f1_dict["precision"]["no_relation"] = round(float(confusion_matrix[0][0])/(float(confusion_matrix[0][0]) + float(confusion_matrix[1][0])),2)
+    f1_dict["precision"]["target"] = round(float(confusion_matrix[1][1])/(float(confusion_matrix[1][1]) + float(confusion_matrix[0][1])),2)
+    f1_dict["recall"]["no_relation"] = round(float(confusion_matrix[0][0])/(float(confusion_matrix[0][0]) + float(confusion_matrix[0][1])),2)
+    f1_dict["recall"]["target"] = round(float(confusion_matrix[1][1])/(float(confusion_matrix[1][0]) + float(confusion_matrix[1][1])),2)
+    print(f1_dict)
+    final_f1_score = {}
+    final_f1_score["no_relation"] = round((2*f1_dict["precision"]["no_relation"]*f1_dict["recall"]["no_relation"])/(f1_dict["recall"]["no_relation"] + f1_dict["precision"]["no_relation"]),2)
+    final_f1_score["target"] = round((2*f1_dict["precision"]["target"]*f1_dict["recall"]["target"])/(f1_dict["recall"]["target"] + f1_dict["precision"]["target"]),2)
+    print(final_f1_score)
     with open(output_file,"w") as fp:
         fp.write(str(confusion_matrix) + '\n')
+        fp.write(str(f1_dict) + '\n')
+        fp.write(str(final_f1_score) + '\n')
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate Fine tuned model ',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
